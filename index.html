@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#170f1d">
+  <title>Our little story</title>
+  <style>
+    :root {
+      --ink: #fff8fc;
+      --muted: #cbb8c8;
+      --pink: #ff7cae;
+      --rose: #e84d83;
+      --night: #170f1d;
+      --card: rgba(255, 255, 255, .1);
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; scroll-behavior: smooth; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at 72% 12%, #48223e 0, transparent 32rem),
+        radial-gradient(circle at 10% 84%, #271d37 0, transparent 28rem), var(--night);
+      overflow-x: hidden;
+    }
+    button { font: inherit; }
+    .noise { position: fixed; inset: 0; pointer-events: none; opacity: .045; z-index: 10;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E"); }
+    .orb { position: fixed; width: 22rem; height: 22rem; border-radius: 50%; filter: blur(70px); opacity: .18; background: var(--rose); pointer-events: none; }
+    .orb.one { top: 8%; left: -12rem; } .orb.two { right: -12rem; bottom: 10%; background: #8c77ff; }
+    main { position: relative; z-index: 1; width: min(100%, 900px); margin: auto; padding: 28px 22px 70px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { font: 600 .75rem/1.2 Arial, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .music {
+      border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: var(--ink);
+      border-radius: 999px; padding: 9px 14px; cursor: pointer; transition: .25s ease;
+    }
+    .music:hover, .music:focus-visible { background: rgba(255,255,255,.16); transform: translateY(-2px); outline: none; }
+    .music[aria-pressed="true"] { border-color: var(--pink); color: #ffd1e1; }
+    .hero { min-height: 78vh; display: grid; align-content: center; padding: 70px 0 90px; }
+    .eyebrow { color: var(--pink); font: 700 .72rem/1 Arial, sans-serif; letter-spacing: .25em; text-transform: uppercase; }
+    h1 { font-size: clamp(3.3rem, 11vw, 7.6rem); line-height: .92; letter-spacing: -.06em; font-weight: 400; max-width: 770px; margin: 20px 0 26px; }
+    h1 em { color: var(--pink); font-style: normal; }
+    .hero p { max-width: 430px; color: var(--muted); font-size: clamp(1.1rem, 2.5vw, 1.35rem); line-height: 1.6; margin: 0 0 34px; }
+    .primary, .next {
+      border: 0; border-radius: 999px; padding: 14px 22px; color: #2a1020; background: var(--pink);
+      cursor: pointer; font: 700 .9rem Arial, sans-serif; box-shadow: 0 12px 30px rgba(232, 77, 131, .23); transition: .25s ease;
+    }
+    .primary:hover, .next:hover, .primary:focus-visible, .next:focus-visible { background: #ffb0ca; transform: translateY(-3px); outline: none; }
+    .scroll-note { margin-top: 42px; color: #8f7e90; font: .7rem Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+    .story { display: none; animation: rise .7s ease both; }
+    .story.active { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .chapter { min-height: 64vh; display: grid; align-content: center; padding: 70px 0; border-top: 1px solid rgba(255,255,255,.12); }
+    .chapter-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: clamp(25px, 7vw, 90px); align-items: center; }
+    .chapter-no { color: var(--pink); font: 700 1rem Arial, sans-serif; letter-spacing: .18em; }
+    h2 { font-size: clamp(2.5rem, 7vw, 5.4rem); font-weight: 400; line-height: .98; letter-spacing: -.05em; margin: 12px 0 22px; }
+    .chapter-copy { color: var(--muted); font-size: 1.2rem; line-height: 1.75; max-width: 500px; }
+    .quote { margin: 0 0 25px; padding-left: 18px; border-left: 2px solid var(--pink); font-size: clamp(1.4rem, 3.5vw, 2.2rem); line-height: 1.25; }
+    .progress { display: flex; gap: 7px; margin: 0 0 42px; }
+    .progress i { height: 3px; flex: 1; background: rgba(255,255,255,.15); border-radius: 5px; }
+    .progress i.on { background: var(--pink); }
+    .moment {
+      margin-top: 24px; padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.04)); text-align: center;
+    }
+    .mini-game { margin-top: 24px; padding: 22px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.04)); }
+    .game-label { margin: 0 0 15px; color: var(--pink); font: 700 .7rem Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+    .game-status { min-height: 24px; margin: 15px 0 0; color: var(--muted); font: .9rem/1.4 Arial, sans-serif; }
+    .game-choice { border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: 10px 14px; margin: 4px; color: var(--ink); background: rgba(255,255,255,.08); cursor: pointer; transition: .2s ease; }
+    .game-choice:hover, .game-choice:focus-visible { border-color: var(--pink); background: rgba(255,124,174,.16); outline: none; transform: translateY(-2px); }
+    .game-choice.selected { border-color: var(--pink); background: var(--pink); color: #2a1020; }
+    .game-next { opacity: .45; pointer-events: none; margin-top: 14px; }
+    .game-next.ready { opacity: 1; pointer-events: auto; }
+    .media-placeholder { margin-top: 24px; min-height: 170px; display: grid; place-items: center; text-align: center; padding: 24px; border: 1px dashed rgba(255,124,174,.55); border-radius: 22px; background: linear-gradient(135deg, rgba(255,124,174,.16), rgba(255,255,255,.04)); }
+    .media-placeholder strong { display: block; color: var(--pink); font-size: 1.3rem; font-weight: 400; }
+    .media-placeholder span { display: block; margin-top: 8px; color: var(--muted); font: .78rem/1.5 Arial, sans-serif; }
+    .chosen-media { width: min(100%, 420px); max-height: 260px; margin-top: 20px; border-radius: 18px; object-fit: cover; box-shadow: 0 14px 30px rgba(0,0,0,.2); }
+    .memory-gallery { margin-top: 24px; }
+    .gallery-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .filter { border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 8px 12px; color: var(--muted); background: rgba(255,255,255,.06); cursor: pointer; font: .75rem Arial, sans-serif; }
+    .filter.active, .filter:hover { border-color: var(--pink); color: var(--ink); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .gallery-card { aspect-ratio: 1; overflow: hidden; border-radius: 13px; background: rgba(255,255,255,.08); cursor: pointer; }
+    .gallery-card img, .gallery-card video { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .35s ease; }
+    .gallery-card:hover img, .gallery-card:hover video { transform: scale(1.06); }
+    .gallery-card video { pointer-events: none; }
+    .gallery-note { margin: 12px 0 0; color: #8f7e90; font: .75rem Arial, sans-serif; }
+    .memory-wall { margin-top: 34px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,.12); }
+    .memory-wall h3 { margin: 0 0 8px; color: var(--pink); font-size: 1.6rem; font-weight: 400; }
+    .wall-grid { columns: 4 130px; column-gap: 10px; }
+    .wall-card { display: block; width: 100%; margin: 0 0 10px; padding: 0; overflow: hidden; border: 0; border-radius: 14px; background: rgba(255,255,255,.08); break-inside: avoid; cursor: zoom-in; }
+    .wall-card img { display: block; width: 100%; height: auto; transition: transform .3s ease; }
+    .wall-card:hover img, .wall-card:focus-visible img { transform: scale(1.06); }
+    .wall-card:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+    .lightbox { position: fixed; inset: 0; z-index: 30; display: none; place-items: center; padding: 24px; background: rgba(10,6,14,.88); }
+    .lightbox.open { display: grid; }
+    .lightbox img, .lightbox video { max-width: min(920px, 94vw); max-height: 82vh; border-radius: 16px; }
+    .lightbox-close { position: fixed; top: 20px; right: 24px; border: 0; color: white; background: transparent; font-size: 2rem; cursor: pointer; }
+    .sticker-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: .16; }
+    .page-sticker { position: absolute; width: clamp(40px, 6vw, 74px); height: clamp(40px, 6vw, 74px); padding: 3px; border: 0; border-radius: 18px; background: rgba(255,255,255,.03); pointer-events: none; transform: rotate(var(--tilt)); }
+    .page-sticker img { width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
+    .message-board { min-height: 82px; position: relative; overflow: hidden; border-radius: 15px; background: rgba(0,0,0,.15); }
+    .message { position: absolute; padding: 10px 14px; border-radius: 15px; color: #2a1020; background: #ffd5e3; font: .85rem Arial, sans-serif; animation: pop .25s ease-out both; }
+    @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .sticker-game { margin-top: 24px; padding: 20px; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; background: rgba(255,255,255,.06); }
+    .sticker-picks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .sticker-pick { width: 58px; height: 58px; padding: 5px; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; background: rgba(255,255,255,.08); cursor: pointer; transition: transform .2s, border-color .2s; }
+    .sticker-pick:hover, .sticker-pick:focus-visible { transform: scale(1.12) rotate(-4deg); border-color: var(--pink); outline: none; }
+    .sticker-pick.found { border-color: var(--pink); background: rgba(255,124,174,.25); transform: scale(1.08); }
+    .sticker-pick img { width: 100%; height: 100%; object-fit: contain; }
+    .moment p { color: var(--muted); line-height: 1.6; }
+    .heart-zone { display: flex; min-height: 150px; align-items: center; justify-content: space-between; gap: 12px; }
+    .heart, .heart-target { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 50%; }
+    .heart { border: 0; color: white; background: var(--rose); font-size: 2.2rem; cursor: grab; box-shadow: 0 0 0 0 rgba(255,124,174,.5); touch-action: none; transition: transform .2s; }
+    .heart:active { cursor: grabbing; transform: scale(1.13); }
+    .heart-target { border: 1px dashed var(--pink); color: var(--pink); font-size: 1.8rem; }
+    .heart-target.filled { background: rgba(255,124,174,.18); border-style: solid; }
+    .final { min-height: 65vh; display: grid; place-items: center; text-align: center; padding: 90px 0 30px; }
+    .final-card { max-width: 680px; padding: clamp(28px, 7vw, 70px); border: 1px solid rgba(255,255,255,.16); border-radius: 30px; background: rgba(255,255,255,.06); }
+    .final-card p { color: var(--muted); font-size: 1.25rem; line-height: 1.8; }
+    .signature { color: var(--pink); font-size: 1.4rem; margin-top: 35px; }
+    .hint { color: #8f7e90; font: .8rem Arial, sans-serif; margin-top: 30px; }
+    .celebrate { margin-top: 22px; border: 1px solid rgba(255,124,174,.55); border-radius: 999px; padding: 12px 18px; color: #2a1020; background: var(--pink); cursor: pointer; font: 700 .8rem Arial, sans-serif; transition: .2s ease; }
+    .celebrate:hover, .celebrate:focus-visible { background: #ffb0ca; transform: translateY(-2px); outline: none; }
+    .confetti { position: fixed; top: -20px; z-index: 40; width: 9px; height: 15px; pointer-events: none; animation: fall 2.8s ease-in forwards; }
+    @keyframes fall { to { transform: translate3d(var(--drift), 110vh, 0) rotate(680deg); opacity: 0; } }
+    .story-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; justify-content: space-between; padding: 14px clamp(14px, 4vw, 48px); pointer-events: none; }
+    .story-nav button { min-width: 110px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 11px 16px; color: var(--ink); background: rgba(23,15,29,.86); cursor: pointer; pointer-events: auto; font: 700 .78rem Arial, sans-serif; transition: .2s ease; }
+    .story-nav button:hover, .story-nav button:focus-visible { border-color: var(--pink); background: var(--rose); outline: none; transform: translateY(-2px); }
+    .story-nav button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+    @media (max-width: 650px) {
+      main { padding-inline: 18px; } .hero { min-height: 75vh; }
+      .chapter-grid { grid-template-columns: 1fr; gap: 12px; } .chapter { min-height: auto; padding: 70px 0; }
+      .heart-zone { min-height: 130px; } .heart, .heart-target { width: 62px; height: 62px; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .topbar { align-items: flex-start; } .brand { max-width: 150px; line-height: 1.4; }
+      .story-nav { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+      .story-nav button { min-width: 94px; padding: 13px 14px; }
+      .chosen-media { max-height: 210px; }
+      .page-sticker { width: 42px; height: 42px; }
+      .sticker-field { opacity: .1; }
+      body { padding-bottom: 70px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div><div class="orb one"></div><div class="orb two"></div>
+  <main>
+    <header class="topbar">
+      <div class="brand">A little story, for you</div>
+      <button class="music" id="musicButton" aria-pressed="false">♫ Music off</button>
+      <audio id="music" loop preload="metadata"><source src="Musika.mp4" type="audio/mp4"></audio>
+    </header>
+
+    <section class="hero" id="intro">
+      <div class="eyebrow">From my point of view</div>
+      <h1>Before Grace,<br>there was <em>just me.</em></h1>
+      <p>This is the story of how Justin found his favorite person, and how a little spark became us.</p>
+      <button class="primary" id="begin">Begin our story <span aria-hidden="true">→</span></button>
+      <div class="scroll-note">Turn the page when you're ready</div>
+    </section>
+
+    <section class="story" id="story" aria-live="polite">
+      <div class="progress" aria-label="Story progress"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <article class="chapter" data-chapter="0">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">01 / BEFORE GRACE</div><h2>I was trying to find my way.</h2></div>
+          <div><p class="quote">“I made mistakes, then blamed the world for the things I had not yet learned to fix.”</p><p class="chapter-copy">Before I met you, it felt like everything was falling into the wrong places. I carried the weight of my choices and convinced myself that the world was the problem. I did not know that someone could make life feel lighter just by arriving.</p><div class="mini-game"><p class="game-label">Mini game / choose what Justin learns</p><button class="game-choice" data-before="wrong">Blame the world</button><button class="game-choice" data-before="right">Own my mistakes</button><p class="game-status" id="beforeStatus">The story changes when I choose honestly.</p><button class="next game-next" id="beforeNext">Then I found you →</button></div></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="1">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">02 / MAY — BUMBLE</div><h2>And then, there was Grace.</h2></div>
+          <div><p class="quote">“You were jolly, fun, and a whole bundle of joy.”</p><p class="chapter-copy">We met online through Bumble, and somehow we talked almost the whole day whenever life was not keeping us busy. When I asked you out in May and you said yes, I felt that spark for real. Over coffee and cookies, walking and talking beside you, I felt happy in a way I had missed for a long time.</p><div class="mini-game"><p class="game-label">Mini game / catch three messages from Grace</p><div class="message-board" id="messageBoard"></div><p class="game-status" id="messageStatus">Catch the joyful messages before they float away: 0 / 3</p><button class="next game-next" id="dateNext">Our next chapter →</button></div></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="2">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">03 / MAY — OUR FIRST DATE</div><h2>Coffee, cookies, and a spark.</h2></div>
+          <div><p class="quote">“That day felt like joy had finally found its way to me.”</p><p class="chapter-copy">In May, I asked you out and you said yes. We shared coffee and cookies, walked together, and talked as if we had known each other longer than we had. I remember how happy we were, and how naturally the world seemed to fit around us.</p><div class="media-placeholder"><img class="chosen-media" src="Uploaded Media/Photo 1.jpg" alt="Photo 1 from our story"><span>KAIN NG KAIN ABAAAAAA</span></div><button class="next">Keep this memory →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="3">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">04 / SEPTEMBER — US</div><h2>You asked first. I should have.</h2></div>
+          <div><p class="chapter-copy">Even after I told you I loved you, I was afraid to ask you to be my girlfriend. I am sorry I let you take that first step, and that it made you sad. But you gave us a chance to talk, make our own terms, and choose each other. Drag my heart to yours — the way I should have reached for you sooner.</p>
+            <div class="moment"><div class="heart-zone"><button class="heart" id="heart" aria-label="Drag the heart to the heart outline">♥</button><div class="heart-target" id="target" aria-hidden="true">♡</div></div><p id="dragHint">Bring my heart home</p><button class="next game-next" id="relationshipNext">Start our next chapter →</button></div>
+          </div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="4">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">05 / TWO MONTHS IN</div><h2>Distance asked us to be brave.</h2></div>
+          <div><p class="quote">“We had only just begun, and already we had to learn how to miss each other.”</p><p class="chapter-copy">After two months of being a couple, we began our long-distance relationship. The miles changed our routine, but they did not change how much I wanted you in my life.</p><button class="next">Face the distance →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="5">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">06 / THE HARD DAYS</div><h2>We were not perfect.</h2></div>
+          <div><p class="quote">“Love is not never hurting each other; it is caring enough to come back and understand.”</p><p class="chapter-copy">We argued. We misunderstood each other. Some days the distance felt louder than our love. I know those moments were painful, and I am sorry for the times I added to that weight.</p><button class="next">Try again with me →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="6">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">07 / TALKING IT OUT</div><h2>We kept opening the door.</h2></div>
+          <div><p class="chapter-copy">The good news is that we learned not to leave the difficult things unsaid. We talked things out, listened more carefully, and found our way back to the same team.</p><button class="next">Choose us again →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="7">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">08 / STILL US</div><h2>Every day, I still choose you.</h2></div>
+          <div><p class="quote">“The distance is real, but so is everything we are building.”</p><p class="chapter-copy">You are still my jolly, fun, wonderful bundle of joy. Even from far away, you make ordinary days worth remembering. We are learning, growing, and loving each other in a way that is honest and ours.</p><div class="media-placeholder"><video class="chosen-media" src="Uploaded Media/Couple video 1.mp4" controls playsinline preload="metadata"></video><span>KILIG NA KILIG AKO DITO</span></div><button class="next">One last chapter →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="8">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">09 / THIS SEPTEMBER</div><h2>We made it to our anniversary.</h2></div>
+          <div><p class="chapter-copy">This September is more than a date on the calendar. It is a reminder that we made it through the awkward beginnings, the missed moments, the arguments, and the miles. I am grateful that our story is still moving forward.</p><button class="next">Read my letter →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="9">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">10 / LITTLE ROUTINES</div><h2>We made ordinary days feel special.</h2></div>
+          <div><p class="quote">“The best memories were often the simple ones.”</p><p class="chapter-copy">A message from you, a shared laugh, a familiar face on my screen — those small rituals became the threads that kept us close, even when we were apart.</p><button class="next">Keep our rhythm →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="10">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">11 / THE LITTLE FIGHTS</div><h2>We learned what matters.</h2></div>
+          <div><p class="quote">“I do not want to win an argument if it means losing your hand.”</p><p class="chapter-copy">Arguments taught me that being right is not more important than being kind. We learned where each other is tender, and we learned to meet there with more patience.</p><div class="sticker-game"><p class="game-label">Mini game / find three love stickers</p><div class="sticker-picks" id="stickerGameOne"></div><p class="game-status" id="stickerStatusOne">Find 3 stickers to unlock the softer answer: 0 / 3</p></div><button class="next game-next" id="stickerNextOne">Choose patience →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="11">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">12 / THE PROMISE</div><h2>We kept showing up.</h2></div>
+          <div><p class="quote">“Even across the miles, I am still here.”</p><p class="chapter-copy">Not every day was easy, but we kept making space for each other. That choice — to call, listen, apologize, and try again — became our quiet promise.</p><div class="sticker-game"><p class="game-label">Mini game / choose our lucky sticker</p><div class="sticker-picks" id="stickerGameTwo"></div><p class="game-status" id="stickerStatusTwo">Pick one to carry into the next chapter.</p></div><button class="next game-next" id="stickerNextTwo">Hold on to us →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="12">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">13 / WHAT COMES NEXT</div><h2>There is still so much to live.</h2></div>
+          <div><p class="chapter-copy">More dates, more coffee, more photos that make us laugh, and more moments where the distance is only temporary. I am excited for every page we have not written yet.</p><button class="next">Open our archive →</button></div>
+        </div>
+      </article>
+      <article class="chapter" data-chapter="13">
+        <div class="chapter-grid">
+          <div><div class="chapter-no">14 / OUR LITTLE ARCHIVE</div><h2>All the moments I want to keep.</h2></div>
+          <div><p class="quote">“A story is made of seconds. These are some of my favorites.”</p><p class="chapter-copy">A whole chapter for us: the faces, laughter, clips, and little memories that make this love feel real. Tap anything to see it bigger.</p><div class="memory-gallery"><div class="gallery-filters"><button class="filter active" data-filter="all">Everything</button><button class="filter" data-filter="photo">Photos</button><button class="filter" data-filter="video">Videos</button></div><div class="gallery-grid" id="galleryGrid"></div><p class="gallery-note">Your memories, kept close ♡</p><div class="memory-wall"><h3>Our sticker + photo wall</h3><p class="gallery-note">A little wall of the faces and tiny reactions that make this story ours.</p><div class="wall-grid" id="wallGrid"></div></div></div><button class="next">Read my letter →</button></div>
+        </div>
+      </article>
+      <article class="chapter final" data-chapter="14">
+        <div class="final-card">
+          <div class="eyebrow">15 / ALWAYS</div><h2>Distance is part of our story, not the end.</h2>
+          <div class="media-placeholder"><img class="chosen-media" src="Uploaded Media/Fave photo.png" alt="Our favourite photo"><span>You bring happiness into my life</span></div>
+          <p>Grace, thank you for being my joy, my patience, and my home across the distance. This September, I am celebrating not a perfect love, but our real love — the one we keep fighting for.</p>
+          <p class="signature">With all my love,<br>Justin</p>
+          <div class="hint">Happy anniversary, Bubtot ♡ I love you so damn much!</div>
+          <button class="celebrate" id="celebrateButton" type="button">Celebrate us ✦</button>
+        </div>
+      </article>
+    </section>
+  </main>
+  <nav class="story-nav" id="storyNav" aria-label="Story navigation">
+    <button id="backButton" type="button">← Back</button>
+    <button id="nextButton" type="button">Next →</button>
+  </nav>
+  <div class="sticker-field" id="stickerField" aria-hidden="true"></div>
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Memory preview" aria-modal="true"><button class="lightbox-close" id="lightboxClose" aria-label="Close preview">×</button><div id="lightboxContent"></div></div>
+  <script>
+    const intro = document.getElementById("intro");
+    const story = document.getElementById("story");
+    const chapters = [...document.querySelectorAll(".chapter")];
+    const bars = [...document.querySelectorAll(".progress i")];
+    const music = document.getElementById("music");
+    const musicButton = document.getElementById("musicButton");
+    const storyNav = document.getElementById("storyNav");
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
+    let current = 0;
+    let navigationUnlocked = false;
+    storyNav.style.display = "none";
+
+    function showChapter(index) {
+      current = Math.min(index, chapters.length - 1);
+      if (current === chapters.length - 1) navigationUnlocked = true;
+      chapters.forEach((chapter, i) => chapter.style.display = i === current ? "grid" : "none");
+      bars.forEach((bar, i) => bar.classList.toggle("on", i <= current));
+      backButton.disabled = current === 0;
+      nextButton.disabled = current === chapters.length - 1;
+      storyNav.style.display = story.classList.contains("active") && navigationUnlocked ? "flex" : "none";
+      chapters[current].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    function celebrate() {
+      const colors = ["#ff7cae", "#ffd166", "#a7e8bd", "#b7a3ff", "#fff8fc"];
+      for (let i = 0; i < 34; i += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.setProperty("--drift", `${(Math.random() - .5) * 220}px`);
+        piece.style.animationDelay = `${Math.random() * .4}s`;
+        document.body.appendChild(piece);
+        piece.addEventListener("animationend", () => piece.remove(), { once: true });
+      }
+    }
+    document.getElementById("celebrateButton").addEventListener("click", celebrate);
+    function startMusic() {
+      music.play().then(() => {
+        musicButton.textContent = "♫ Music on";
+        musicButton.setAttribute("aria-pressed", "true");
+      }).catch(() => {
+        musicButton.textContent = "♫ Tap for music";
+      });
+    }
+    document.getElementById("begin").addEventListener("click", () => {
+      intro.style.display = "none"; story.classList.add("active"); showChapter(0); startMusic();
+    });
+    document.querySelectorAll(".next").forEach(button => button.addEventListener("click", () => showChapter(current + 1)));
+    backButton.addEventListener("click", () => showChapter(current - 1));
+    nextButton.addEventListener("click", () => showChapter(current + 1));
+    musicButton.addEventListener("click", () => {
+      if (music.paused) startMusic();
+      else { music.pause(); musicButton.textContent = "♫ Music off"; musicButton.setAttribute("aria-pressed", "false"); }
+    });
+
+    const galleryGrid = document.getElementById("galleryGrid");
+    const galleryItems = [
+      ["photo", "Couple photos/0570a335-4852-49f9-a576-d315b94dbd38.jpg"],
+      ["photo", "Couple photos/1d365c68-c187-4f89-8967-4d4db2774ce6.jpg"],
+      ["photo", "Couple photos/4d4cce8c-cd13-4929-b2e8-2285351159a9.jpg"],
+      ["photo", "Couple photos/71f951c6-edda-4e8a-9876-cbe3989be674.jpg"],
+      ["photo", "Couple photos/a60d49f1-ab04-43cf-b389-c277eb99fa70.jpg"],
+      ["photo", "Couple photos/acd40fce-0a60-400e-bded-e98151ea13f3.jpg"],
+      ["photo", "Couple photos/b971e5a6-7774-45c0-90ec-9fca0877de4c.jpg"],
+      ["photo", "Couple photos/cb28ac39-8448-4f6d-ba83-83306bcf3e88.jpg"],
+      ["photo", "Couple photos/cf06343d-ecaa-416d-9b03-050b445892fb.jpg"],
+      ["photo", "Couple photos/f753e5e8-be8f-4f10-ae6a-24e7cbddae67.jpg"],
+      ["photo", "Couple photos/f8b41c7b-b439-46a9-91ae-7d800bb5efde.jpg"],
+      ["photo", "Couple photos/fff3d7bf-1a58-47bf-a869-0975fb6d5474.jpg"],
+      ["photo", "Couple photos/download (1).jpg"],
+      ["photo", "Couple photos/download (11).jpg"],
+      ["photo", "Couple photos/photo 1.jpg"],
+      ["photo", "Couple photos/Fave photo.jpg"],
+      ["video", "Couple Videos/b5090795-d969-44b7-b779-f195f362f525.mp4"],
+      ["video", "Couple Videos/b77a596a-7157-4b1e-8b36-9c0481a3ee30.mp4"],
+      ["video", "Couple Videos/bde61416-e8a1-443e-baa6-e9da67a68770.mp4"],
+      ["video", "Couple Videos/ce244766-2e3c-4bb2-a8b5-0afcbb740829.mp4"],
+      ["video", "Couple Videos/ec3817a1-0131-4341-acb4-69af0f9ffb26.mp4"],
+      ["video", "Couple Videos/be312d0b-2252-46a4-941f-a262146f01b5.mp4"],
+      ["photo", "Grace photo and videos/072c2f98-edaa-4f50-87e1-71ea9822998d.jpg"],
+      ["photo", "Grace photo and videos/4473efe1-6132-4ecc-9a6a-6738f5fd9ae1.jpg"],
+      ["photo", "Grace photo and videos/477b9eb3-5c86-42ed-9078-f6f5a20d3865.jpg"],
+      ["photo", "Grace photo and videos/74f336f2-6c4f-4ad2-a8ef-238d595fff90.jpg"],
+      ["photo", "Grace photo and videos/b44598cf-1b64-4f98-aefa-65ab9dc4e127.jpg"],
+      ["photo", "Grace photo and videos/download (7).jpg"],
+      ["video", "Grace photo and videos/152c20d3-1618-4c8f-8797-b6f89dccfe0e.mp4"],
+      ["video", "Grace photo and videos/4ad6123a-9bbb-4d14-9a09-2aaa0046254d.mp4"],
+      ["video", "Grace photo and videos/4d8f323b-1518-4d38-80ba-1c76e44ee93e.mp4"],
+      ["video", "Grace photo and videos/af16fe12-6c1a-4454-9adc-6ac47e344fa1.mp4"],
+      ["video", "Grace photo and videos/f7d9406e-5fed-4a3a-8737-3931f2f34d04.mp4"],
+      ["video", "Grace photo and videos/ff5a95aa-7071-43a1-9912-7c6ea370bb27.mp4"],
+      ["video", "Grace photo and videos/download.mp4"],
+      ["video", "Justin photo and videos/282caaec-ef4d-4834-9f43-f0f467755194.mp4"],
+      ["video", "Justin photo and videos/3696be30-4c0c-4a8b-b16e-ea1ecb982c05.mp4"],
+      ["video", "Justin photo and videos/b00a496c-3401-4de1-bbf3-7b54b7b48009.mp4"]
+    ];
+    const stickers = [
+      "Sticker folder/14847b68-4325-4506-80ac-d4ed6d746680.jpg",
+      "Sticker folder/download (1).jpg", "Sticker folder/download (10).jpg",
+      "Sticker folder/download (2).jpg", "Sticker folder/download (3).jpg",
+      "Sticker folder/download (4).jpg", "Sticker folder/download (5).jpg",
+      "Sticker folder/download (6).jpg", "Sticker folder/download (7).jpg",
+      "Sticker folder/download (8).jpg", "Sticker folder/download (9).jpg",
+      "Sticker folder/download.jpg", "Sticker folder/rgra.jpg"
+    ];
+    const stickerField = document.getElementById("stickerField");
+    stickers.forEach((src, index) => {
+      const sticker = document.createElement("button");
+      sticker.className = "page-sticker";
+      sticker.type = "button";
+      sticker.style.left = `${4 + (index * 17) % 91}%`;
+      sticker.style.top = `${7 + (index * 23) % 84}%`;
+      sticker.style.setProperty("--tilt", `${(index % 5 - 2) * 4}deg`);
+      sticker.setAttribute("aria-label", `Playful sticker ${index + 1}`);
+      const image = document.createElement("img");
+      image.src = src;
+      image.alt = "";
+      image.addEventListener("error", () => sticker.remove(), { once: true });
+      sticker.appendChild(image);
+      stickerField.appendChild(sticker);
+    });
+    function fillStickerGame(containerId, count, onPick) {
+      const container = document.getElementById(containerId);
+      stickers.slice(0, count).forEach((src, index) => {
+        const pick = document.createElement("button");
+        pick.className = "sticker-pick";
+        pick.type = "button";
+        pick.setAttribute("aria-label", `Choose sticker ${index + 1}`);
+        const image = document.createElement("img");
+        image.src = src;
+        image.alt = "";
+        pick.appendChild(image);
+        pick.addEventListener("click", () => onPick(pick));
+        container.appendChild(pick);
+      });
+    }
+    let foundStickers = 0;
+    fillStickerGame("stickerGameOne", 6, pick => {
+      if (pick.classList.contains("found")) return;
+      pick.classList.add("found");
+      foundStickers += 1;
+      document.getElementById("stickerStatusOne").textContent = `Find 3 stickers to unlock the softer answer: ${foundStickers} / 3`;
+      if (foundStickers >= 3) {
+        document.getElementById("stickerStatusOne").textContent = "Three love stickers found. Kindness wins this chapter.";
+        document.getElementById("stickerNextOne").classList.add("ready");
+      }
+    });
+    fillStickerGame("stickerGameTwo", 5, pick => {
+      document.querySelectorAll("#stickerGameTwo .sticker-pick").forEach(item => item.classList.remove("found"));
+      pick.classList.add("found");
+      document.getElementById("stickerStatusTwo").textContent = "Lucky sticker chosen. I will keep showing up.";
+      document.getElementById("stickerNextTwo").classList.add("ready");
+    });
+    const lightbox = document.getElementById("lightbox");
+    const lightboxContent = document.getElementById("lightboxContent");
+    const wallGrid = document.getElementById("wallGrid");
+    function openPreview(type, src) {
+      lightboxContent.innerHTML = "";
+      const preview = document.createElement(type === "photo" ? "img" : "video");
+      preview.src = src;
+      preview.alt = "A memory from our story";
+      if (type === "video") { preview.controls = true; preview.autoplay = true; preview.playsInline = true; }
+      lightboxContent.appendChild(preview);
+      lightbox.classList.add("open");
+    }
+    function renderGallery(filter = "all") {
+      galleryGrid.innerHTML = "";
+      galleryItems.filter(item => filter === "all" || item[0] === filter).forEach(([type, src]) => {
+        const card = document.createElement("button");
+        card.className = "gallery-card"; card.type = "button"; card.dataset.type = type;
+        const media = document.createElement(type === "photo" ? "img" : "video");
+        media.src = src; media.alt = type === "photo" ? "A memory from our story" : "A video memory from our story";
+        if (type === "photo") media.loading = "lazy";
+        if (type === "video") { media.muted = true; media.loop = true; media.autoplay = true; media.playsInline = true; }
+        media.addEventListener("error", () => card.remove(), { once: true });
+        card.appendChild(media); galleryGrid.appendChild(card);
+        card.addEventListener("click", () => {
+          openPreview(type, src);
+        });
+      });
+    }
+    function renderWall() {
+      const wallItems = [
+        ...galleryItems.filter(([type]) => type === "photo").map(([, src]) => src),
+        ...stickers
+      ];
+      wallItems.forEach(src => {
+        const card = document.createElement("button");
+        card.className = "wall-card"; card.type = "button";
+        const image = document.createElement("img");
+        image.src = src; image.alt = "Memory wall image";
+        image.addEventListener("error", () => card.remove(), { once: true });
+        card.appendChild(image); wallGrid.appendChild(card);
+        card.addEventListener("click", () => openPreview("photo", src));
+      });
+    }
+    document.querySelectorAll(".filter").forEach(filter => filter.addEventListener("click", () => {
+      document.querySelectorAll(".filter").forEach(item => item.classList.remove("active"));
+      filter.classList.add("active"); renderGallery(filter.dataset.filter);
+    }));
+    document.getElementById("lightboxClose").addEventListener("click", () => lightbox.classList.remove("open"));
+    lightbox.addEventListener("click", event => { if (event.target === lightbox) lightbox.classList.remove("open"); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") lightbox.classList.remove("open"); });
+    renderGallery();
+    renderWall();
+
+    const beforeStatus = document.getElementById("beforeStatus");
+    const beforeNext = document.getElementById("beforeNext");
+    document.querySelectorAll("[data-before]").forEach(choice => choice.addEventListener("click", () => {
+      document.querySelectorAll("[data-before]").forEach(item => item.classList.remove("selected"));
+      choice.classList.add("selected");
+      if (choice.dataset.before === "right") {
+        beforeStatus.textContent = "That was the first step: taking responsibility, then moving forward.";
+        beforeNext.classList.add("ready");
+      } else {
+        beforeStatus.textContent = "That was how I used to think. Try the braver answer.";
+      }
+    }));
+
+    const messageBoard = document.getElementById("messageBoard");
+    const messageStatus = document.getElementById("messageStatus");
+    const dateNext = document.getElementById("dateNext");
+    const messages = ["Hi, Justin ☺", "Tell me everything!", "Coffee and cookies?", "You made me smile ♡", "Good morning!"];
+    let caught = 0;
+    function sendMessage() {
+      if (caught >= 3) return;
+      const bubble = document.createElement("button");
+      bubble.className = "message";
+      bubble.type = "button";
+      bubble.textContent = messages[Math.floor(Math.random() * messages.length)];
+      bubble.style.left = `${10 + Math.random() * 62}%`;
+      messageBoard.appendChild(bubble);
+      bubble.addEventListener("click", () => {
+        if (bubble.disabled) return;
+        bubble.disabled = true;
+        bubble.remove();
+        caught += 1;
+        messageStatus.textContent = `Catch the joyful messages before they float away: ${caught} / 3`;
+        if (caught === 3) {
+          messageStatus.textContent = "Three little sparks caught. That is how our all-day conversations felt.";
+          dateNext.classList.add("ready");
+        }
+      });
+      setTimeout(() => bubble.remove(), 3900);
+    }
+    const messageTimer = setInterval(sendMessage, 1200);
+    window.addEventListener("beforeunload", () => clearInterval(messageTimer), { once: true });
+
+    const heart = document.getElementById("heart");
+    const target = document.getElementById("target");
+    const dragHint = document.getElementById("dragHint");
+    let dragging = false;
+    let momentComplete = false;
+    function completeMoment() {
+      if (momentComplete) return;
+      momentComplete = true;
+      dragging = false; heart.style.position = ""; heart.style.left = ""; heart.style.top = "";
+      target.classList.add("filled"); target.textContent = "♥"; dragHint.textContent = "There you are. ♡";
+      document.getElementById("relationshipNext").classList.add("ready");
+      showChapter(3);
+    }
+    heart.addEventListener("pointerdown", event => { dragging = true; heart.setPointerCapture(event.pointerId); heart.style.position = "fixed"; heart.style.zIndex = 20; });
+    heart.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      heart.style.left = `${event.clientX - heart.offsetWidth / 2}px`; heart.style.top = `${event.clientY - heart.offsetHeight / 2}px`;
+      const a = heart.getBoundingClientRect(), b = target.getBoundingClientRect();
+      if (Math.hypot(a.left - b.left, a.top - b.top) < 70) completeMoment();
+    });
+    heart.addEventListener("click", completeMoment);
+    heart.addEventListener("pointerup", () => { dragging = false; heart.style.position = ""; heart.style.left = ""; heart.style.top = ""; });
+    showChapter(0);
+  </script>
+</body>
+</html>
